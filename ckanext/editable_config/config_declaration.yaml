@@ -1,0 +1,12 @@
+version: 1
+groups:
+  - annotation: ckanext-editable-config
+    options:
+      - key: ckanext.editable_config.options.extra_editable
+        type: list
+
+      - key: ckanext.editable_config.options.whitelist
+        type: list
+
+      - key: ckanext.editable_config.options.blacklist
+        type: list
