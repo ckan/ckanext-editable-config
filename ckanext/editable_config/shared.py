@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime
 import logging
+from typing import Any
 
 from typing_extensions import TypedDict
 
@@ -22,8 +23,7 @@ class OptionDict(TypedDict):
     prev_value: str
 
 
-def current_as_string(key: str) -> str:
-    value = tk.config[key]
+def value_as_string(key: str, value: Any) -> str:
     option = cd[Key.from_string(key)]
 
     return DeclaredOption(value).set_validators(option.get_validators()).str_value()

@@ -1,7 +1,7 @@
 import pytest
 
-
 import ckan.plugins.toolkit as tk
+
 from ckanext.editable_config.logic import schema
 
 

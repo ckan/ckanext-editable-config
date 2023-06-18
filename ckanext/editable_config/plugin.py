@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 
 import sqlalchemy as sa
 
@@ -14,6 +15,7 @@ from ckan.config.declaration.option import Flag
 from . import config, shared
 
 log = logging.getLogger(__name__)
+ENVVAR_DISABLE = "CKANEXT_EDITABLE_CONFIG_DISABLE"
 
 
 @tk.blanket.config_declarations
@@ -25,11 +27,11 @@ class EditableConfigPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IMiddleware, inherit=True)
     plugins.implements(plugins.IConfigDeclaration, inherit=True)
 
-    _editable_config_intialized: bool = True
+    _editable_config_enabled: bool = True
 
     # IMiddleware
     def make_middleware(self, app: types.CKANApp, config: CKANConfig) -> types.CKANApp:
-        if self._editable_config_intialized:
+        if self._editable_config_enabled:
             app.before_request(self._apply_overrides)
         return app
 
@@ -61,11 +63,18 @@ class EditableConfigPlugin(plugins.SingletonPlugin):
 
     # IConfigurable
     def configure(self, config_: CKANConfig):
+        if tk.asbool(os.getenv(ENVVAR_DISABLE)):
+            self._editable_config_enabled = False
+            log.info(
+                "editable_config disabled because of environemnt variable: %s",
+                ENVVAR_DISABLE,
+            )
+
         inspector = sa.inspect(model.meta.engine)
-        self._editable_config_intialized = inspector.has_table("editable_config_option")
-        if not self._editable_config_intialized:
+        self._editable_config_enabled = inspector.has_table("editable_config_option")
+        if not self._editable_config_enabled:
             log.critical(
-                "Run migration of ckanext-editable config: %s",
+                "editable_config disabled because of missing migration: %s",
                 "ckan db upgrade -p editable_config",
             )
             return

@@ -40,7 +40,7 @@ def editable_config_list(
 
         skey = str(key)
 
-        result[skey] = {"value": shared.current_as_string(skey)}
+        result[skey] = {"value": shared.value_as_string(skey, tk.config[skey])}
 
     return result
 
@@ -89,14 +89,7 @@ def editable_config_change(
     options: list[Option] = []
 
     for k, v in data_dict["options"].items():
-        if k not in cd or not cd[Key.from_string(k)].has_flag(Flag.editable):
-            raise tk.ValidationError({k: ["Not editable"]})
-
-        _, errors = cd.validate(CKANConfig(tk.config, **{k: v}))
-        if errors:
-            raise tk.ValidationError(errors)
-
-        options.append(Option.set(k, v))
+        options.append(_make_option(k, v))
 
     result: dict[str, shared.OptionDict] = {}
     for option in options:
@@ -110,6 +103,41 @@ def editable_config_change(
         shared.apply_config_overrides()
 
     return result
+
+
+def _make_option(key: str, value: Any):
+    if key not in cd or not cd[Key.from_string(key)].has_flag(Flag.editable):
+        raise tk.ValidationError({key: ["Not editable"]})
+
+    _, errors = cd.validate(CKANConfig(tk.config, **{key: value}))
+    if errors:
+        raise tk.ValidationError(errors)
+
+    return Option.set(key, value)
+
+
+@tk.side_effect_free
+@validate(schema.editable_config_create)
+def editable_config_create(
+    context: types.Context,
+    data_dict: dict[str, Any],
+) -> shared.OptionDict:
+    tk.check_access("editable_config_create", context, data_dict)
+    sess = context["session"]
+
+    option = _make_option(data_dict["key"], data_dict["value"])
+    if "prev_value" in data_dict:
+        option.prev_value = data_dict["prev_value"]
+
+    sess.add(option)
+
+    if not context.get("defer_commit"):
+        sess.commit()
+
+    if data_dict["apply"]:
+        shared.apply_config_overrides()
+
+    return option.as_dict(tk.fresh_context(context))
 
 
 @tk.side_effect_free

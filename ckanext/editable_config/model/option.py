@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import datetime
-from typing import cast
+from typing import Any, cast
 
 import sqlalchemy as sa
 from typing_extensions import Self
@@ -29,16 +29,17 @@ class Option(tk.BaseModel):
         )
 
     @classmethod
-    def set(cls, key: str, value: str) -> Self:
+    def set(cls, key: str, value: Any) -> Self:
         option: Self
+        safe_value = shared.value_as_string(key, value)
 
         if option := cls.get(key):
-            option.value = value
+            option.value = safe_value
         else:
-            option = cls(key=key, value=value)
+            option = cls(key=key, value=safe_value)
 
         option.updated_at = datetime.datetime.utcnow()
-        option.prev_value = shared.current_as_string(key)
+        option.prev_value = shared.value_as_string(key, tk.config[key])
 
         return option
 

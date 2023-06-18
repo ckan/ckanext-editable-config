@@ -40,6 +40,22 @@ def editable_config_change(
 
 
 @validator_args
+def editable_config_create(
+    default: types.ValidatorFactory,
+    not_empty: types.Validator,
+    boolean_validator: types.Validator,
+    unicode_safe: types.Validator,
+    ignore_empty: types.Validator,
+) -> types.Schema:
+    return {
+        "key": [not_empty, unicode_safe],
+        "value": [not_empty, unicode_safe],
+        "prev_value": [ignore_empty, unicode_safe],
+        "apply": [default(True), boolean_validator],
+    }
+
+
+@validator_args
 def editable_config_revert(
     json_list_or_string: types.Validator,
     list_of_strings: types.Validator,
