@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime
 import logging
-from typing import Any
+from typing import Any, Collection
 
 from typing_extensions import TypedDict
 
@@ -30,18 +30,28 @@ def value_as_string(key: str, value: Any) -> str:
 
 
 class _Updater:
-    _last_update: datetime.datetime | None
+    _last_check: datetime.datetime | None
 
     def __init__(self):
-        self._last_update = None
+        self._last_check = None
 
-    def __call__(self, removed_keys: list[str] | None = None) -> int:
+    def __call__(self, removed_keys: Collection[str] | None = None) -> int:
+        count = self._apply_changes()
+        count += self._remove_keys(removed_keys)
+
+        if count:
+            plugins_update()
+
+        return count
+
+    def _apply_changes(self) -> int:
         from ckanext.editable_config.model import Option
 
+        now = datetime.datetime.utcnow()
         count = 0
 
-        if Option.is_updated_since(self._last_update):
-            for option in Option.updated_since(self._last_update):
+        if Option.is_updated_since(self._last_check):
+            for option in Option.updated_since(self._last_check):
                 log.debug(
                     "Change %s from %s to %s",
                     option.key,
@@ -51,31 +61,37 @@ class _Updater:
                 tk.config[option.key] = option.value
                 count += 1
 
-            self._last_update = datetime.datetime.utcnow()
+        self._last_check = now
+        return count
 
-        if removed_keys:
-            src_conf = CKANConfigLoader(tk.config["__file__"]).get_config()
-            for key in removed_keys:
-                if key in src_conf:
-                    log.debug(
-                        "Reset %s from %s to %s",
-                        key,
-                        tk.config[key],
-                        src_conf[key],
-                    )
+    def _remove_keys(self, keys: Collection[str] | None) -> int:
+        count = 0
+        if not keys:
+            return count
 
-                    tk.config[key] = src_conf[key]
-                else:
-                    log.debug(
-                        "Remove %s with value %s",
-                        key,
-                        tk.config[key],
-                    )
-                    tk.config.pop(key)
-                count += 1
+        src_conf = CKANConfigLoader(tk.config["__file__"]).get_config()
+        for key in keys:
+            if key in src_conf:
+                log.debug(
+                    "Reset %s from %s to %s",
+                    key,
+                    tk.config[key],
+                    src_conf[key],
+                )
 
-        if count:
-            plugins_update()
+                tk.config[key] = src_conf[key]
+            elif key in tk.config:
+                log.debug(
+                    "Remove %s with value %s",
+                    key,
+                    tk.config[key],
+                )
+                tk.config.pop(key)
+            else:
+                log.warning("Attempt to reset unknown option %s", key)
+                continue
+
+            count += 1
 
         return count
 

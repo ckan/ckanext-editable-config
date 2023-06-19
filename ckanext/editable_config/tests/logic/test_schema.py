@@ -8,7 +8,7 @@ from ckanext.editable_config.logic import schema
 @pytest.mark.parametrize(
     ("schema", "expected"),
     [
-        (schema.editable_config_list, {}),
+        (schema.editable_config_list, {"pattern": "*"}),
         (
             schema.editable_config_update,
             {"change": {}, "revert": [], "reset": [], "apply": True},

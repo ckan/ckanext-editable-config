@@ -19,7 +19,7 @@ def editable_config_list(
     return authz.is_authorized("editable_config_access", context, data_dict)
 
 
-def editable_config_create(
+def editable_config_option_save(
     context: types.Context,
     data_dict: dict[str, Any],
 ) -> types.AuthResult:

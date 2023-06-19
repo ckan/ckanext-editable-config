@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import datetime
+from datetime import datetime
 from typing import Any, cast
 
 import sqlalchemy as sa
@@ -38,23 +38,27 @@ class Option(tk.BaseModel):
         else:
             option = cls(key=key, value=safe_value)
 
-        option.updated_at = datetime.datetime.utcnow()
         option.prev_value = shared.value_as_string(key, tk.config[key])
+        option.touch()
 
         return option
 
+    def touch(self):
+        self.updated_at = datetime.utcnow()
+
     def revert(self):
         self.value, self.prev_value = self.prev_value, self.value
+        self.touch()
 
     def as_dict(self, context: types.Context) -> shared.OptionDict:
         return cast(shared.OptionDict, table_dictize(self, context))
 
     @classmethod
-    def is_updated_since(cls, last_update: datetime.datetime | None) -> bool:
+    def is_updated_since(cls, last_update: datetime | None) -> bool:
         return model.Session.query(cls.updated_since(last_update).exists()).scalar()
 
     @classmethod
-    def updated_since(cls, last_update: datetime.datetime | None) -> types.Query[Self]:
+    def updated_since(cls, last_update: datetime | None) -> types.Query[Self]:
         q = model.Session.query(cls)
         if last_update:
             q = q.filter(cls.updated_at > last_update)

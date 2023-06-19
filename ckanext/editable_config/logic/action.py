@@ -33,7 +33,7 @@ def editable_config_list(
     tk.check_access("editable_config_list", context, data_dict)
 
     result: dict[str, Any] = {}
-    for key in cd.iter_options():
+    for key in cd.iter_options(pattern=data_dict["pattern"]):
         option = cd[key]
         if not option.has_flag(Flag.editable):
             continue
@@ -73,7 +73,7 @@ def editable_config_update(
     )
 
     if data_dict["apply"]:
-        shared.apply_config_overrides(removed_keys=list(result["reset"]))
+        shared.apply_config_overrides(removed_keys=result["reset"])
 
     return result
 
@@ -117,12 +117,12 @@ def _make_option(key: str, value: Any):
 
 
 @tk.side_effect_free
-@validate(schema.editable_config_create)
-def editable_config_create(
+@validate(schema.editable_config_option_save)
+def editable_config_option_save(
     context: types.Context,
     data_dict: dict[str, Any],
 ) -> shared.OptionDict:
-    tk.check_access("editable_config_create", context, data_dict)
+    tk.check_access("editable_config_option_save", context, data_dict)
     sess = context["session"]
 
     option = _make_option(data_dict["key"], data_dict["value"])
@@ -200,7 +200,7 @@ def editable_config_reset(
         sess.commit()
 
     if data_dict["apply"]:
-        shared.apply_config_overrides(removed_keys=list(result))
+        shared.apply_config_overrides(removed_keys=result)
 
     return result
 

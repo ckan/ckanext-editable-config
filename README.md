@@ -2,121 +2,105 @@
 
 # ckanext-editable-config
 
-**TODO:** Put a description of your extension here:  What does it do? What features does it have? Consider including some screenshots or embedding a video!
+Edit CKAN configuration in runtime.
 
+This plugin registers a set of API action for overriding config options and
+applying the changes to application without restarting the web server.
+
+**Note**: this plugin is not compatible with the CKAN's built-in AdminUI Config
+form. Results are unpredictable when they are combined, so prefer to `Reset`
+built-in config form and never use it if you going to rely on this plugin. Or,
+at least, do not change the config option managed by AdminUI using the plugin's
+API.
 
 ## Requirements
 
-**TODO:** For example, you might want to mention here which versions of CKAN this
-extension works with.
-
-If your extension works across different versions you can add the following table:
-
 Compatibility with core CKAN versions:
 
-| CKAN version    | Compatible?   |
-| --------------- | ------------- |
-| 2.6 and earlier | not tested    |
-| 2.7             | not tested    |
-| 2.8             | not tested    |
-| 2.9             | not tested    |
-
-Suggested values:
-
-* "yes"
-* "not tested" - I can't think of a reason why it wouldn't work
-* "not yet" - there is an intention to get it working
-* "no"
+| CKAN version  | Compatible? |
+|---------------|-------------|
+| 2.9 and below | no          |
+| 2.10          | yes         |
+| master        | yes         |
 
 
 ## Installation
 
-**TODO:** Add any additional install steps to the list below.
-   For example installing any non-Python dependencies or adding any required
-   config settings.
-
 To install ckanext-editable-config:
 
-1. Activate your CKAN virtual environment, for example:
+1. Install the extension
 
-     . /usr/lib/ckan/default/bin/activate
+    pip install ckanext-editable-config
 
-2. Clone the source and install it on the virtualenv
+1. Add `editable_config` to the `ckan.plugins`.
 
-    git clone https://github.com/DataShades/ckanext-editable-config.git
-    cd ckanext-editable-config
-    pip install -e .
-	pip install -r requirements.txt
+## Usage
 
-3. Add `editable-config` to the `ckan.plugins` setting in your CKAN
-   config file (by default the config file is located at
-   `/etc/ckan/default/ckan.ini`).
+All the config options declared with the `editable: true` flag can be overriden
+when the plugin is enabled. Every time the option is updated, it's new value
+passed to the declared validators of the option. If any validator raises an
+error, not changes happen. As long as option has proper validators configured,
+it's safe to change its value.
 
-4. Restart CKAN. For example if you've deployed CKAN with Apache on Ubuntu:
+There are 3 types of changes:
 
-     sudo service apache2 reload
+* `change`: option gets a new value.
+* `revert`: option gets its previous value. For example, `ckan.site_title`
+  intially has the value `CKAN`. Then you applied a `change` to it, setting
+  title to `Updated title`. `revert` will set `ckan.site_title` back to
+  `CKAN`. `revert` itself is a change, so double-revert doesn't change
+  anything. It's not like `CTRL+Z`. Only the latest and one before the latest
+  changes are kept.
+* `reset`: remove all customizations from the config option and reset it to the
+  state defined in the config file.
 
+The only action you really need to remember is `editable_config_update`. It
+accepts 3 collections core each of the corresponding change types:
+
+* `change`: dictionary with option names and their new values
+* `revert`: list of options that will be reverted
+* `reset`: list of options that will be reset to the state of config file.
+
+For example, if you want to change the value of the site title to `Updated
+title`, revert site description to the previous value(whatever it was) and
+reset all customizations of the About page, call the `editable_config_update`:
+```python
+tk.get_action("editable_config_update")(
+    {"ignore_auth": True},
+    {
+        "change": {"ckan.site_title": "Updated title"},
+        "revert": ["ckan.site_description"],
+        "reset": ["ckan.site_about"],
+    },
+)
+```
+
+**Note**: all actions require sysadmin access.
 
 ## Config settings
 
-None at present
+```ini
+# Additional options that can be changed via API even if they don't have
+# `editable` flag enabled. Use it only when you are sure that changinging the
+# option value won't break the application. For example, adding
+# `ckan.datasets_per_page` here is relatively safe, because it is validated
+# as an integer(but it's not 100% safe, because it's possible to assign
+# negative number to this option and validators won't complain).
+# (optional, default: )
+ckanext.editable_config.options.extra_editable = ckan.datasets_per_page ckan.auth.user_create_groups
 
-**TODO:** Document any optional config settings here. For example:
+# Narrow down the list of editable config options. If this option is not
+# empty, only `editable` options that are listed here can be changed via API.
+# Attempt to change any other option, disregarding its `editable` flag, will
+# cause a validation error.
+# (optional, default: )
+ckanext.editable_config.options.whitelist = ckan.site_title ckan.site_description
 
-	# The minimum number of hours to wait before re-checking a resource
-	# (optional, default: 24).
-	ckanext.editable_config.some_setting = some_default_value
-
-
-## Developer installation
-
-To install ckanext-editable-config for development, activate your CKAN virtualenv and
-do:
-
-    git clone https://github.com/DataShades/ckanext-editable-config.git
-    cd ckanext-editable-config
-    python setup.py develop
-    pip install -r dev-requirements.txt
-
-
-## Tests
-
-To run the tests, do:
-
-    pytest --ckan-ini=test.ini
-
-
-## Releasing a new version of ckanext-editable-config
-
-If ckanext-editable-config should be available on PyPI you can follow these steps to publish a new version:
-
-1. Update the version number in the `setup.py` file. See [PEP 440](http://legacy.python.org/dev/peps/pep-0440/#public-version-identifiers) for how to choose version numbers.
-
-2. Make sure you have the latest version of necessary packages:
-
-    pip install --upgrade setuptools wheel twine
-
-3. Create a source and binary distributions of the new version:
-
-       python setup.py sdist bdist_wheel && twine check dist/*
-
-   Fix any errors you get.
-
-4. Upload the source distribution to PyPI:
-
-       twine upload dist/*
-
-5. Commit any outstanding changes:
-
-       git commit -a
-       git push
-
-6. Tag the new release of the project on GitHub with the version number from
-   the `setup.py` file. For example if the version number in `setup.py` is
-   0.0.1 then do:
-
-       git tag 0.0.1
-       git push --tags
+# Disable `editable` flag for the specified options. It's not possible to
+# change the value of option mentioned here, even if it's `editable`.
+# (optional, default: )
+ckanext.editable_config.options.blacklist = ckan.site_title ckan.site_description
+```
 
 ## License
 

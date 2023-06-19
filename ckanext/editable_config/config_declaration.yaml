@@ -4,9 +4,30 @@ groups:
     options:
       - key: ckanext.editable_config.options.extra_editable
         type: list
+        example: ckan.datasets_per_page ckan.auth.user_create_groups
+        description: |
+          Additional options that can be changed via API even if they don't
+          have `editable` flag enabled. Use it only when you are sure that
+          changinging the option value won't break the application. For
+          example, adding `ckan.datasets_per_page` here is relatively safe,
+          because it is validated as an integer(but it's not 100% safe, because
+          it's possible to assign negative number to this option and validators
+          won't complain).
 
       - key: ckanext.editable_config.options.whitelist
         type: list
+        example: ckan.site_title ckan.site_description
+        description: |
+          Narrow down the list of editable config options. If this option is
+          not empty, only `editable` options that are listed here can be
+          changed via API. Attempt to change any other option, disregarding its
+          `editable` flag, will cause a validation error.
+
 
       - key: ckanext.editable_config.options.blacklist
         type: list
+        example: ckan.site_title ckan.site_description
+        description: |
+          Disable `editable` flag for the specified options. It's not possible
+          to change the value of option mentioned here, even if it's
+          `editable`.

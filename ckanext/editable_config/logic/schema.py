@@ -5,8 +5,11 @@ from ckan.logic.schema import validator_args
 
 
 @validator_args
-def editable_config_list() -> types.Schema:
-    return {}
+def editable_config_list(
+    default: types.ValidatorFactory,
+    unicode_safe: types.Validator,
+) -> types.Schema:
+    return {"pattern": [default("*"), unicode_safe]}
 
 
 @validator_args
@@ -40,7 +43,7 @@ def editable_config_change(
 
 
 @validator_args
-def editable_config_create(
+def editable_config_option_save(
     default: types.ValidatorFactory,
     not_empty: types.Validator,
     boolean_validator: types.Validator,
