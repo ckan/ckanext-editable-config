@@ -40,7 +40,10 @@ def editable_config_list(
 
         skey = str(key)
 
-        result[skey] = {"value": shared.value_as_string(skey, tk.config[skey])}
+        result[skey] = {
+            "value": shared.value_as_string(skey, tk.config[skey]),
+            "option": opt.as_dict(context) if (opt := Option.get(skey)) else None,
+        }
 
     return result
 
