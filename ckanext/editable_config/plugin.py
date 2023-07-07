@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
+from typing import Iterable
 
 import sqlalchemy as sa
 
@@ -78,5 +79,17 @@ class EditableConfigPlugin(plugins.SingletonPlugin):
                 "ckan db upgrade -p editable_config",
             )
             return
+
+        stmt = sa.select(model.SystemInfo.key)
+        legacy_modified: Iterable[str] = model.Session.scalars(stmt)
+        editable = {
+            str(op) for op in cd.iter_options() if cd[op].has_flag(Flag.editable)
+        }
+
+        if problems := (set(legacy_modified) & editable):
+            log.warning(
+                "Modification via core AdminUI will produce undefined behavior: %s",
+                problems,
+            )
 
         shared.apply_config_overrides()
