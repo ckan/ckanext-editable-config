@@ -12,6 +12,7 @@ from ckan.common import CKANConfig
 from ckan.common import config_declaration as cd
 from ckan.config.declaration import Key
 from ckan.config.declaration.option import Flag
+from ckan.logic import clear_actions_cache
 
 from . import config, shared
 
@@ -21,6 +22,7 @@ ENVVAR_DISABLE = "CKANEXT_EDITABLE_CONFIG_DISABLE"
 
 @tk.blanket.config_declarations
 @tk.blanket.actions
+@tk.blanket.helpers
 @tk.blanket.auth_functions
 class EditableConfigPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IConfigurer, inherit=True)
@@ -41,6 +43,8 @@ class EditableConfigPlugin(plugins.SingletonPlugin):
 
     # IConfigurer
     def update_config(self, config_: CKANConfig):
+        tk.add_template_directory(config_, "templates")
+
         self._update_editable_flag(config.extra_editable(), True)
         self._update_editable_flag(config.blacklist(), False)
 

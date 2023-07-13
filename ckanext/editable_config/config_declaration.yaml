@@ -31,3 +31,16 @@ groups:
           Disable `editable` flag for the specified options. It's not possible
           to change the value of option mentioned here, even if it's
           `editable`.
+
+      - key: ckanext.editable_config.disable_admin_config_tab
+        type: bool
+        example: true
+        description: |
+          Remove "Config" tab from CKAN's Admin UI.
+
+      - key: ckanext.editable_config.convert_core_overrides
+        type: bool
+        example: true
+        description: |
+          Automatically convert any existing config overrides added via CKAN's
+          Admin UI into editable config overrides.

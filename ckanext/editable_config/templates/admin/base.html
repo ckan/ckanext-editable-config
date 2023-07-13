@@ -1,0 +1,12 @@
+{% ckan_extends %}
+
+{% block content_primary_nav %}
+
+    {% if h.editable_config_disable_admin_config_tab() %}
+        {{ h.build_nav_icon('admin.index', _('Sysadmins'), icon='gavel') }}
+        {{ h.build_nav_icon('admin.trash', _('Trash'), icon='trash') }}
+        {{ h.build_extra_admin_nav() if "build_extra_admin_nav" in h }}
+    {% else %}
+        {{ super() }}
+    {% endif %}
+{% endblock %}
