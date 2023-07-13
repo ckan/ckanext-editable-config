@@ -91,9 +91,38 @@ class EditableConfigPlugin(plugins.SingletonPlugin):
         }
 
         if problems := (set(legacy_modified) & editable):
-            log.warning(
-                "Modification via core AdminUI will produce undefined behavior: %s",
-                problems,
-            )
+            if tk.config["ckanext.editable_config.convert_core_overrides"]:
+                self._convert_core_overrides(problems)
+            else:
+                log.warning(
+                    "Modification via core AdminUI will cause undefined behavior: %s",
+                    problems,
+                )
 
         shared.apply_config_overrides()
+
+    def _convert_core_overrides(self, names: Iterable[str]):
+        clear_actions_cache()
+        try:
+            change = tk.get_action("editable_config_change")
+        except KeyError:
+            log.debug("Do not convert core overrides because plugin is not loaded yet")
+            return
+
+        q = model.Session.query(model.SystemInfo).filter(
+            model.SystemInfo.key.in_(names)
+        )
+        options = {
+            op.key: op.value
+            for op in
+            q
+        }
+
+        log.debug("Convert core overrides into editable config: %s", options)
+        change({"ignore_auth": True}, {
+            "apply": False,
+            "options": options,
+        })
+
+        q.delete()
+        model.Session.commit()
