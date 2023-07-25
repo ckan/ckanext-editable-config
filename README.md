@@ -37,12 +37,12 @@ Change application's title:
 
 ## Content
 
-* [Requirements][#requirements]
-* [Installation][#installation]
-* [Usage][#usage]
-* [Config settings][#config-settings]
-* [API actions][#api-actions]
-* [Troubleshooting][#troubleshooting]
+* [Requirements](#requirements)
+* [Installation](#installation)
+* [Usage](#usage)
+* [Config settings](#config-settings)
+* [API actions](#api-actions)
+* [Troubleshooting](#troubleshooting)
 
 ## Requirements
 
