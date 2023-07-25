@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+from typing import Any
 
 import pytest
 from pytest_factoryboy import register
@@ -36,7 +37,7 @@ class OptionFactory(factories.CKANFactory):
     @classmethod
     @contextlib.contextmanager
     def autoclean(cls, *args, **kwargs):
-        option = cls(*args, **kwargs)
+        option: dict[str, Any] = cls(*args, **kwargs)
         try:
             yield option
         finally:

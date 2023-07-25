@@ -5,7 +5,7 @@ import pytest
 
 from ckan.tests.helpers import call_action
 
-from ckanext.editable_config import shared
+from ckanext.editable_config import config, shared
 from ckanext.editable_config.model import Option
 
 
@@ -26,7 +26,7 @@ def test_value_as_string():
 class TestUpdater:
     def test_apply_new_updates(self, faker, ckan_config, freezer, autoclean_option):
         """New updates are applied."""
-        freezer.move_to(timedelta(days=1))
+        freezer.move_to(timedelta(seconds=1))
         key = autoclean_option["key"]
         value = faker.sentence()
 
@@ -34,6 +34,21 @@ class TestUpdater:
         assert ckan_config[key] != value
         assert shared.apply_config_overrides() == 1
         assert ckan_config[key] == value
+
+    @pytest.mark.ckan_config(config.CHARGE_TIMEOUT, 10)
+    def test_charge_timeout(self, faker, freezer, autoclean_option):
+        """New updates are applied."""
+        freezer.move_to(timedelta(seconds=5))
+
+        call_action(
+            "editable_config_change",
+            options={autoclean_option["key"]: faker.sentence()},
+            apply=False,
+        )
+        assert shared.apply_config_overrides() == 0
+
+        freezer.move_to(timedelta(seconds=6))
+        assert shared.apply_config_overrides() == 1
 
     def test_apply_old_updates(self, faker, ckan_config, freezer, autoclean_option):
         """Old updates are ignored."""

@@ -10,8 +10,9 @@ import ckan.plugins.toolkit as tk
 from ckan.cli import CKANConfigLoader
 from ckan.common import config_declaration as cd
 from ckan.config.declaration import Key
-from ckan.config.declaration.option import Option as DeclaredOption
 from ckan.plugins.core import plugins_update
+
+from . import config
 
 log = logging.getLogger(__name__)
 
@@ -24,18 +25,37 @@ class OptionDict(TypedDict):
 
 
 def value_as_string(key: str, value: Any) -> str:
+    """Convert the value into string using declared option rules."""
+    # TODO: Switch to `option.str_value(value)` once PR with this form is
+    # accepted and released.
     option = cd[Key.from_string(key)]
+    cls = type(option)
 
-    return DeclaredOption(value).set_validators(option.get_validators()).str_value()
+    return cls(value).set_validators(option.get_validators()).str_value()
 
 
 class _Updater:
+    # use the date of last update instead of mutex. In this way we can perform
+    # multiple simultaneous updates of the global config object, but it's ok,
+    # since config update is idempotent. More important, most of the time we
+    # won't spend extra ticks waiting for mutex acquire/release. Because config
+    # updates are relatively infrequent, it's better to do double-overrides
+    # once in a while instead of constantly waiting in mutex queue.
+
+    # TODO: write bencharks for mutex vs. last updated
+    # TODO: prove that race-condition is safe here
     _last_check: datetime.datetime | None
 
     def __init__(self):
         self._last_check = None
 
     def __call__(self, removed_keys: Collection[str] | None = None) -> int:
+        """Override changed config options and remove options that do not
+        require customization.
+
+        Reckon total number of modifications and reload plugins if any change
+        detected.
+        """
         count = self._apply_changes()
         count += self._remove_keys(removed_keys)
 
@@ -45,10 +65,15 @@ class _Updater:
         return count
 
     def _apply_changes(self) -> int:
+        """Override config options that were updated since last check."""
         from ckanext.editable_config.model import Option
 
         now = datetime.datetime.utcnow()
         count = 0
+
+        charge_timeout = datetime.timedelta(seconds=config.charge_timeout())
+        if self._last_check and now - self._last_check < charge_timeout:
+            return count
 
         if Option.is_updated_since(self._last_check):
             for option in Option.updated_since(self._last_check):
@@ -65,6 +90,7 @@ class _Updater:
         return count
 
     def _remove_keys(self, keys: Collection[str] | None) -> int:
+        """Restore original value(using config file) for specified options."""
         count = 0
         if not keys:
             return count
@@ -72,6 +98,7 @@ class _Updater:
         src_conf = CKANConfigLoader(tk.config["__file__"]).get_config()
         for key in keys:
             if key in src_conf:
+                # switch to the literal value from the config file.
                 log.debug(
                     "Reset %s from %s to %s",
                     key,
@@ -81,6 +108,7 @@ class _Updater:
 
                 tk.config[key] = src_conf[key]
             elif key in tk.config:
+                # switch to the declared default value by removing option
                 log.debug(
                     "Remove %s with value %s",
                     key,
@@ -88,6 +116,7 @@ class _Updater:
                 )
                 tk.config.pop(key)
             else:
+                # TODO: analize if it even possible to get here
                 log.warning("Attempt to reset unknown option %s", key)
                 continue
 

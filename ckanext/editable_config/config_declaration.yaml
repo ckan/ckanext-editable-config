@@ -32,6 +32,21 @@ groups:
           to change the value of option mentioned here, even if it's
           `editable`.
 
+      - key: ckanext.editable_config.charge_timeout
+        type: int
+        default: 0
+        example: 10
+        description: |
+          Minimal number of seconds between two consequent change detection
+          cycles. Basically, if you set 60 as a value, plugin will check config
+          chnages once in a minute. In this way you can reduce number of DB
+          queries and avoid unnecesarry checks when static files are served by
+          CKAN.  Note, these queries are pretty fast(1ms), so you won't notice
+          any significant performance improvement by setting any non-zero value
+          here. And it means that any config overrides applied by API actions
+          may not be visible immediately - you'll have to wait `charge_timeout`
+          seconds in worst case.
+
       - key: ckanext.editable_config.disable_admin_config_tab
         type: bool
         example: true

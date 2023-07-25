@@ -28,7 +28,6 @@ class EditableConfigPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IConfigurer, inherit=True)
     plugins.implements(plugins.IConfigurable, inherit=True)
     plugins.implements(plugins.IMiddleware, inherit=True)
-    plugins.implements(plugins.IConfigDeclaration, inherit=True)
 
     _editable_config_enabled: bool = True
 
@@ -36,6 +35,7 @@ class EditableConfigPlugin(plugins.SingletonPlugin):
     def make_middleware(self, app: types.CKANApp, config: CKANConfig) -> types.CKANApp:
         if self._editable_config_enabled:
             app.before_request(self._apply_overrides)
+
         return app
 
     def _apply_overrides(self):
@@ -74,6 +74,7 @@ class EditableConfigPlugin(plugins.SingletonPlugin):
                 "editable_config disabled because of environemnt variable: %s",
                 ENVVAR_DISABLE,
             )
+            return
 
         inspector = sa.inspect(model.meta.engine)
         self._editable_config_enabled = inspector.has_table("editable_config_option")
@@ -91,8 +92,9 @@ class EditableConfigPlugin(plugins.SingletonPlugin):
         }
 
         if problems := (set(legacy_modified) & editable):
-            if tk.config["ckanext.editable_config.convert_core_overrides"]:
+            if config.convert_core_overrides():
                 self._convert_core_overrides(problems)
+
             else:
                 log.warning(
                     "Modification via core AdminUI will cause undefined behavior: %s",
@@ -110,19 +112,18 @@ class EditableConfigPlugin(plugins.SingletonPlugin):
             return
 
         q = model.Session.query(model.SystemInfo).filter(
-            model.SystemInfo.key.in_(names)
+            model.SystemInfo.key.in_(names),
         )
-        options = {
-            op.key: op.value
-            for op in
-            q
-        }
+        options = {op.key: op.value for op in q}
 
         log.debug("Convert core overrides into editable config: %s", options)
-        change({"ignore_auth": True}, {
-            "apply": False,
-            "options": options,
-        })
+        change(
+            {"ignore_auth": True},
+            {
+                "apply": False,
+                "options": options,
+            },
+        )
 
         q.delete()
         model.Session.commit()
