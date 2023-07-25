@@ -11,6 +11,13 @@ from ckan.tests import factories
 from ckan.tests.helpers import call_action
 
 from ckanext.editable_config.model import Option
+from ckanext.editable_config.shared import apply_config_overrides
+
+
+@pytest.fixture(autouse=True)
+def reset_last_check():
+    """Remove freezetime dates in future from config_overrides."""
+    apply_config_overrides._last_check = None
 
 
 @pytest.fixture(scope="session")
