@@ -46,6 +46,10 @@ class _Updater:
     # TODO: prove that race-condition is safe here
     _last_check: datetime.datetime | None
 
+    @property
+    def last_check(self):
+        return self._last_check
+
     def __init__(self):
         self._last_check = None
 

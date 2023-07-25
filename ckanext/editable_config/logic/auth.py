@@ -12,6 +12,13 @@ def editable_config_access(
     return authz.is_authorized("sysadmin", context, data_dict)
 
 
+def editable_config_last_check(
+    context: types.Context,
+    data_dict: dict[str, Any],
+) -> types.AuthResult:
+    return authz.is_authorized("editable_config_access", context, data_dict)
+
+
 def editable_config_list(
     context: types.Context,
     data_dict: dict[str, Any],

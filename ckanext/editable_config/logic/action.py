@@ -25,11 +25,38 @@ class UpdateResult(TypedDict):
 
 
 @tk.side_effect_free
+def editable_config_last_check(
+    context: types.Context,
+    data_dict: dict[str, Any],
+) -> dict[str, Any]:
+    """Date and time of the last change detection cycle.
+
+    Returns:
+      last_check(str): ISO datetime
+
+    """
+    tk.check_access("editable_config_last_check", context, data_dict)
+
+    last_check = shared.apply_config_overrides.last_check
+    if not last_check:
+        raise tk.ValidationError({"last_check": ["Change detection disabled"]})
+    return {"last_check": last_check}
+
+
+@tk.side_effect_free
 @validate(schema.editable_config_list)
 def editable_config_list(
     context: types.Context,
     data_dict: dict[str, Any],
 ) -> dict[str, Any]:
+    """All editable config options. Every modified option includes dictionary
+    containing override details.
+
+    Returns:
+      editable option names(`dict[str, Any]`): dictionary with current
+      value and optional modification details
+
+    """
     tk.check_access("editable_config_list", context, data_dict)
 
     result: dict[str, Any] = {}
@@ -81,7 +108,6 @@ def editable_config_update(
     return result
 
 
-@tk.side_effect_free
 @validate(schema.editable_config_change)
 def editable_config_change(
     context: types.Context,

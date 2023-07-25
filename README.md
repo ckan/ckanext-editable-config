@@ -11,17 +11,38 @@ applying the changes to application without restarting the web server.
 
 Change application's title:
 
-```python
-tk.get_action("editable_config_update")(
+* from Python:
+  ```python
+  tk.get_action("editable_config_update")(
     {"ignore_auth": True},
     {
-        "change": {
-            "ckan.site_title": "Updated title"
-        },
+      "change": {
+        "ckan.site_title": "Updated title"
+      },
     },
-)
+  )
+  ```
+* from CLI:
+  ```sh
+  ckanapi action editable_config_update change:'{"ckan.site_title": "Updated via ckanapi"}'
+  ```
+* from browser:
+  ```javascript
+  await fetch("/api/action/editable_config_update", {
+    method: "POST",
+    body: JSON.stringify({change: {"ckan.site_title": "Updated from JS"}}),
+    headers: {"content-type": "application/json"},
+  })
+  ```
 
-```
+## Content
+
+* [Requirements][#requirements]
+* [Installation][#installation]
+* [Usage][#usage]
+* [Config settings][#config-settings]
+* [API actions][#api-actions]
+* [Troubleshooting][#troubleshooting]
 
 ## Requirements
 
@@ -139,6 +160,56 @@ ckanext.editable_config.convert_core_overrides = True
 ```
 
 ## API actions
+
+### `editable_config_last_check`
+
+Date and time of the last change detection cycle.
+
+Returns:
+* `last_check`(`str`): ISO datetime
+
+### `editable_config_list`
+
+All editable config options. Every modified option includes dictionary
+containing override details.
+
+Returns:
+* editable option names(`dict[str, Any]`): dictionary with current value and
+  optional modification details
+
+### `editable_config_change`
+
+Change multiple config options using `options` mapping with pairs of options
+name and option value.
+
+Returns:
+* updated option names(`dict[str, Any]`): dictionary with current value and
+  modification details
+
+### `editable_config_revert`
+
+Swap current and previous value of the option using `keys` list of option names.
+
+Returns:
+* updated option names(`dict[str, Any]`): dictionary with current value and
+  modification details
+
+### `editable_config_reset`
+
+Remove optio modifications using `keys` list of option names.
+
+Returns:
+* updated option names(`dict[str, Any]`): dictionary with current value.
+
+### `editable_config_update`
+
+Combine `change`, `revert` and `reset` actions into a single action. Accepts
+`change` dictionary, `revert` list, and `reset` list. Swiss-knife that exists
+merely for bulk operations.
+
+Returns:
+* updated option names(`dict[str, Any]`): dictionary with current value and
+  optional modification details
 
 ## Troubleshooting
 
