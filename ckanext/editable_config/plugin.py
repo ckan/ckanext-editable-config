@@ -55,6 +55,16 @@ class EditableConfigPlugin(plugins.SingletonPlugin):
 
                 cd[key].flags &= ~Flag.editable
 
+        self._add_validators(config.additional_validators())
+
+    def _add_validators(self, validators: dict[str, str]):
+        for key, names in validators.items():
+            if key not in cd:
+                log.warning("%s is not declared", key)
+                continue
+            option = cd[Key.from_string(key)]
+            option.append_validators(names)
+
     def _update_editable_flag(self, keys: list[str], enable: bool):
         for key in keys:
             if key not in cd:

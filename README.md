@@ -148,6 +148,12 @@ ckanext.editable_config.options.blacklist = ckan.site_title ckan.site_descriptio
 # (optional, default: 0)
 ckanext.editable_config.charge_timeout = 10
 
+# Additional validators that are used when config option overrides are
+# applied. Use this option if CKAN validators are not strict enough and you
+# see the way to break the application by providing valid values for options.
+# (optional, default: {})
+ckanext.editable_config.additional_validators = {"ckan.site_title": "less_than_100 do_not_contain_exclamation_mark"}
+
 # Remove "Config" tab from CKAN's Admin UI.
 # (optional, default: false)
 ckanext.editable_config.disable_admin_config_tab = True

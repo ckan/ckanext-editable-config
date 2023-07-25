@@ -80,6 +80,23 @@ class TestChange:
         call_action("editable_config_change", options={"ckan.site_title": title})
         assert ckan_config["ckan.site_title"] == title
 
+    @pytest.mark.ckan_config(config.EXTRA_EDITABLE, "ckan.datasets_per_page")
+    @pytest.mark.ckan_config(
+        config.ADDITIONAL_VALIDATORS,
+        {"ckan.datasets_per_page": "is_positive_integer"},
+    )
+    def test_additional_validators(self):
+        """Options are validated"""
+        with pytest.raises(tk.ValidationError):
+            call_action(
+                "editable_config_change",
+                options={"ckan.datasets_per_page": -1},
+            )
+        call_action(
+            "editable_config_change",
+            options={"ckan.datasets_per_page": 1},
+        )
+
 
 @pytest.mark.usefixtures("with_plugins", "non_clean_db", "with_autoclean")
 class TestRevert:

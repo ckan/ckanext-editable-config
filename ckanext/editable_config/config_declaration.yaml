@@ -47,6 +47,16 @@ groups:
           may not be visible immediately - you'll have to wait `charge_timeout`
           seconds in worst case.
 
+      - key: ckanext.editable_config.additional_validators
+        example: '{"ckan.site_title": "less_than_100 do_not_contain_exclamation_mark"}'
+        default: {}
+        validators: convert_to_json_if_string dict_only
+        description: |
+          Additional validators that are used when config option overrides are
+          applied. Use this option if CKAN validators are not strict enough and
+          you see the way to break the application by providing valid values
+          for options.
+
       - key: ckanext.editable_config.disable_admin_config_tab
         type: bool
         example: true

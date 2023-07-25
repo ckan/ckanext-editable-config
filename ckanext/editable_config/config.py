@@ -8,6 +8,7 @@ BLACKLIST = "ckanext.editable_config.options.blacklist"
 CHARGE_TIMEOUT = "ckanext.editable_config.charge_timeout"
 DISABLE_CONFIG_TAB = "ckanext.editable_config.disable_admin_config_tab"
 CONVERT_CORE_OVERRIDES = "ckanext.editable_config.convert_core_overrides"
+ADDITIONAL_VALIDATORS = "ckanext.editable_config.additional_validators"
 
 
 def extra_editable() -> list[str]:
@@ -32,3 +33,7 @@ def disable_admin_config_tab() -> bool:
 
 def convert_core_overrides() -> bool:
     return tk.config[CONVERT_CORE_OVERRIDES]
+
+
+def additional_validators() -> dict[str, str]:
+    return tk.config[ADDITIONAL_VALIDATORS]
