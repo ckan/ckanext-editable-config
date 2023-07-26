@@ -174,14 +174,43 @@ Date and time of the last change detection cycle.
 Returns:
 * `last_check`(`str`): ISO datetime
 
+Example:
+```sh
+$ ckanapi action editable_config_last_check
+{
+  "last_check": "2023-07-26T08:24:48.013121"
+}
+
+```
 ### `editable_config_list`
 
 All editable config options. Every modified option includes dictionary
 containing override details.
 
 Returns:
-* editable option names(`dict[str, Any]`): dictionary with current value and
-  optional modification details
+* editable options(`dict[str, Any]`): key: option name; value: dictionary with
+  current value and optional modification details
+
+Example:
+```sh
+$ ckanapi action editable_config_list
+{
+  "ckan.site_about": {
+    "option": null,
+    "value": ""
+  },
+  "ckan.site_title": {
+    "option": {
+      "key": "ckan.site_title",
+      "prev_value": "CKAN",
+      "updated_at": "2023-07-25T21:44:52.434211",
+      "value": "Updated title"
+    },
+    "value": "Updated title"
+  }
+}
+
+```
 
 ### `editable_config_change`
 
@@ -189,23 +218,65 @@ Change multiple config options using `options` mapping with pairs of options
 name and option value.
 
 Returns:
-* updated option names(`dict[str, Any]`): dictionary with current value and
-  modification details
+* updated options(`dict[str, Any]`): key: option name; value: dictionary
+  with updated option details
+
+Example:
+```sh
+$ ckanapi action editable_config_change options='{"ckan.site_title": "Updated"}'
+{
+  "ckan.site_title": {
+    "key": "ckan.site_title",
+    "prev_value": "CKAN",
+    "updated_at": "2023-07-26T08:28:04.988247",
+    "value": "Updated"
+  }
+}
+
+```
 
 ### `editable_config_revert`
 
 Swap current and previous value of the option using `keys` list of option names.
 
 Returns:
-* updated option names(`dict[str, Any]`): dictionary with current value and
-  modification details
+* updated options(`dict[str, Any]`): key: option name; value: dictionary with
+  option details after revert
+
+Example:
+```sh
+$ ckanapi action editable_config_revert keys=ckan.site_title
+{
+  "ckan.site_title": {
+    "key": "ckan.site_title",
+    "prev_value": "Updated",
+    "updated_at": "2023-07-26T08:28:59.667917",
+    "value": "CKAN"
+  }
+}
+```
 
 ### `editable_config_reset`
 
 Remove optio modifications using `keys` list of option names.
 
 Returns:
-* updated option names(`dict[str, Any]`): dictionary with current value.
+* removed options(`dict[str, Any]`): key: option name; value: dictionary with
+  removed option details
+
+Example:
+```sh
+$ ckanapi action editable_config_reset keys=ckan.site_title
+{
+  "ckan.site_title": {
+    "key": "ckan.site_title",
+    "prev_value": "Updated",
+    "updated_at": "2023-07-26T08:28:59.667917",
+    "value": "CKAN"
+  }
+}
+
+```
 
 ### `editable_config_update`
 
@@ -214,8 +285,43 @@ Combine `change`, `revert` and `reset` actions into a single action. Accepts
 merely for bulk operations.
 
 Returns:
-* updated option names(`dict[str, Any]`): dictionary with current value and
-  optional modification details
+* updated option(`dict[str, Any]`): key: option name; value: dictionary
+  with current value and optional modification details
+
+Example
+```sh
+$ ckanapi action editable_config_update \
+$    change='{"ckan.site_about": "Updated via ckanapi"}' \
+$    revert=ckan.site_title \
+$    reset=ckan.site_custom_css
+{
+  "change": {
+    "ckan.site_about": {
+      "key": "ckan.site_about",
+      "prev_value": "Updated via ckanapi",
+      "updated_at": "2023-07-26T08:35:25.462359",
+      "value": "Updated via ckanapi"
+    }
+  },
+  "reset": {
+    "ckan.site_custom_css": {
+      "key": "ckan.site_custom_css",
+      "prev_value": "",
+      "updated_at": "2023-07-26T08:34:26.372150",
+      "value": "body{color: red;}"
+    }
+  },
+  "revert": {
+    "ckan.site_title": {
+      "key": "ckan.site_title",
+      "prev_value": "CKAN",
+      "updated_at": "2023-07-26T08:35:25.536150",
+      "value": "Updated"
+    }
+  }
+}
+
+```
 
 ## Troubleshooting
 

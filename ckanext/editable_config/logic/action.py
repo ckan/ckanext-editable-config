@@ -40,7 +40,7 @@ def editable_config_last_check(
     last_check = shared.apply_config_overrides.last_check
     if not last_check:
         raise tk.ValidationError({"last_check": ["Change detection disabled"]})
-    return {"last_check": last_check}
+    return {"last_check": last_check.isoformat()}
 
 
 @tk.side_effect_free
