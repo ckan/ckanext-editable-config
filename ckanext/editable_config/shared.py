@@ -10,6 +10,7 @@ import ckan.plugins.toolkit as tk
 from ckan.cli import CKANConfigLoader
 from ckan.common import config_declaration as cd
 from ckan.config.declaration import Key
+from ckan.config.declaration.option import Flag
 from ckan.plugins.core import plugins_update
 
 from . import config
@@ -22,6 +23,11 @@ class OptionDict(TypedDict):
     value: str
     updated_at: str
     prev_value: str
+
+
+def is_editable(key: str) -> bool:
+    """Check if option is editable."""
+    return cd[Key.from_string(key)].has_flag(Flag.editable)
 
 
 def value_as_string(key: str, value: Any) -> str:
@@ -81,6 +87,13 @@ class _Updater:
 
         if Option.is_updated_since(self._last_check):
             for option in Option.updated_since(self._last_check):
+                if not is_editable(option.key):
+                    log.debug(
+                        "Option %s was overriden but isn't editable. Skip",
+                        option.key,
+                    )
+                    continue
+
                 log.debug(
                     "Change %s from %s to %s",
                     option.key,
