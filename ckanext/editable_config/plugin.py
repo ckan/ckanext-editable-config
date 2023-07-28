@@ -23,6 +23,7 @@ ENVVAR_DISABLE = "CKANEXT_EDITABLE_CONFIG_DISABLE"
 @tk.blanket.config_declarations
 @tk.blanket.actions
 @tk.blanket.helpers
+@tk.blanket.blueprints
 @tk.blanket.auth_functions
 class EditableConfigPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IConfigurer, inherit=True)
@@ -44,6 +45,7 @@ class EditableConfigPlugin(plugins.SingletonPlugin):
     # IConfigurer
     def update_config(self, config_: CKANConfig):
         tk.add_template_directory(config_, "templates")
+        tk.add_resource("assets", "editable_config")
 
         self._update_editable_flag(config.extra_editable(), True)
         self._update_editable_flag(config.blacklist(), False)

@@ -75,7 +75,6 @@ def editable_config_list(
     return result
 
 
-@tk.side_effect_free
 @validate(schema.editable_config_update)
 def editable_config_update(
     context: types.Context,
@@ -145,7 +144,6 @@ def _make_option(key: str, value: Any):
     return Option.set(key, value)
 
 
-@tk.side_effect_free
 @validate(schema.editable_config_option_save)
 def editable_config_option_save(
     context: types.Context,
@@ -169,7 +167,6 @@ def editable_config_option_save(
     return option.as_dict(tk.fresh_context(context))
 
 
-@tk.side_effect_free
 @validate(schema.editable_config_revert)
 def editable_config_revert(
     context: types.Context,
@@ -204,7 +201,6 @@ def editable_config_revert(
     return result
 
 
-@tk.side_effect_free
 @validate(schema.editable_config_reset)
 def editable_config_reset(
     context: types.Context,
@@ -234,7 +230,6 @@ def editable_config_reset(
     return result
 
 
-@tk.side_effect_free
 @validate(schema.editable_config_apply)
 def editable_config_apply(
     context: types.Context,

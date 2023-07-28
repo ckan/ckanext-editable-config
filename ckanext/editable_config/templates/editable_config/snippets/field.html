@@ -1,0 +1,56 @@
+{#
+name
+option
+data
+errors
+input_macro
+#}
+{% import 'macros/form.html' as form %}
+
+{% set input_macro = input_macro or form.input %}
+
+{% set id = name | replace(".", "-") %}
+
+{% set field_id = "field-value-" ~ id %}
+{% set customize_id = "field-customize-" ~ id %}
+
+{% set attrs = {
+    "class": "form-control",
+    "data-module": "editable-config-toggle-field",
+    "data-module-control": "#" ~ customize_id,
+} %}
+
+{% if not option.option %}
+    {% do attrs.update(disabled="disabled") %}
+{% endif %}
+
+
+{% call input_macro(
+    name,
+    id=field_id,
+    label=name,
+    value=data[name] or option.value,
+    error=errors[name],
+    attrs=attrs,
+    classes=["mb-1"]
+) %}
+
+{% endcall %}
+
+{% if option.option %}
+    {{ form.checkbox(
+        "reset:" ~ name,
+        "field-reset-" ~ id,
+        "Reset",
+        value="1",
+        checked=data["reset:" ~ name],
+    ) }}
+{% else %}
+    {{ form.checkbox(
+        null,
+        customize_id,
+        "Customize",
+        value="1",
+        checked=option.option,
+    ) }}
+{% endif %}

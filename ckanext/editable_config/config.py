@@ -6,6 +6,7 @@ EXTRA_EDITABLE = "ckanext.editable_config.options.extra_editable"
 WHITELIST = "ckanext.editable_config.options.whitelist"
 BLACKLIST = "ckanext.editable_config.options.blacklist"
 CHARGE_TIMEOUT = "ckanext.editable_config.charge_timeout"
+REPLACE_CONFIG_TAB = "ckanext.editable_config.replace_admin_config_tab"
 DISABLE_CONFIG_TAB = "ckanext.editable_config.disable_admin_config_tab"
 CONVERT_CORE_OVERRIDES = "ckanext.editable_config.convert_core_overrides"
 ADDITIONAL_VALIDATORS = "ckanext.editable_config.additional_validators"
@@ -25,6 +26,10 @@ def blacklist() -> list[str]:
 
 def charge_timeout() -> int:
     return tk.config[CHARGE_TIMEOUT]
+
+
+def replace_admin_config_tab() -> bool:
+    return tk.config[REPLACE_CONFIG_TAB]
 
 
 def disable_admin_config_tab() -> bool:

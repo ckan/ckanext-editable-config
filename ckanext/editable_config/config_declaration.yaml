@@ -63,6 +63,13 @@ groups:
         description: |
           Remove "Config" tab from CKAN's Admin UI.
 
+      - key: ckanext.editable_config.replace_admin_config_tab
+        type: bool
+        example: true
+        description: |
+          Replace "Config" tab from CKAN's Admin UI with basic form for
+          editable config options.
+
       - key: ckanext.editable_config.convert_core_overrides
         type: bool
         example: true

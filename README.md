@@ -22,10 +22,12 @@ Change application's title:
     },
   )
   ```
+
 * from CLI:
   ```sh
   ckanapi action editable_config_update change:'{"ckan.site_title": "Updated via ckanapi"}'
   ```
+
 * from browser:
   ```javascript
   await fetch("/api/action/editable_config_update", {
@@ -157,6 +159,11 @@ ckanext.editable_config.additional_validators = {"ckan.site_title": "less_than_1
 # Remove "Config" tab from CKAN's Admin UI.
 # (optional, default: false)
 ckanext.editable_config.disable_admin_config_tab = True
+
+# Replace "Config" tab from CKAN's Admin UI with basic form for editable
+# config options.
+# (optional, default: false)
+ckanext.editable_config.replace_admin_config_tab = True
 
 # Automatically convert any existing config overrides added via CKAN's Admin
 # UI into editable config overrides.

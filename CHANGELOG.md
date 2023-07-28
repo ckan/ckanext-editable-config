@@ -6,16 +6,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 <!-- insertion marker -->
-## Unreleased
+## [v0.0.4](https://github.com/DataShades/ckanext-editable-config/releases/tag/v0.0.4) - 2023-07-28
 
-<small>[Compare with latest](https://github.com/DataShades/ckanext-editable-config/compare/v0.0.3...HEAD)</small>
+<small>[Compare with v0.0.3](https://github.com/DataShades/ckanext-editable-config/compare/v0.0.3...v0.0.4)</small>
 
 ### Features
 
+- basic config management form ([ee885fc](https://github.com/DataShades/ckanext-editable-config/commit/ee885fcbc2c5aaf1f3e62cb759c9889066c4321f) by Sergey Motornyuk).
 - additional_validators config option ([eed0893](https://github.com/DataShades/ckanext-editable-config/commit/eed08939c4f0704f50dcfecb15a5eb380f1b0e27) by Sergey Motornyuk).
 - add charge_timeout config option ([cba2b6a](https://github.com/DataShades/ckanext-editable-config/commit/cba2b6aea6f62ec27c588d0b77a53651f87409b1) by Sergey Motornyuk).
 
-<!-- insertion marker -->
 ## [v0.0.3](https://github.com/DataShades/ckanext-editable-config/releases/tag/v0.0.3) - 2023-07-13
 
 <small>[Compare with v0.0.2](https://github.com/DataShades/ckanext-editable-config/compare/v0.0.2...v0.0.3)</small>

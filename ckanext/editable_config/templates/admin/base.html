@@ -1,8 +1,14 @@
 {% ckan_extends %}
 
 {% block content_primary_nav %}
-    {% if h.editable_config_disable_admin_config_tab() %}
+    {% set disable_config = h.editable_config_disable_admin_config_tab() %}
+    {% set replace_config = h.editable_config_replace_admin_config_tab() %}
+
+    {% if disable_config or replace_config %}
         {{ h.build_nav_icon('admin.index', _('Sysadmins'), icon='gavel') }}
+        {% if replace_config %}
+            {{ h.build_nav_icon('editable_config.config', _('Config'), icon='gear') }}
+        {% endif %}
         {{ h.build_nav_icon('admin.trash', _('Trash'), icon='trash') }}
         {{ h.build_extra_admin_nav() if "build_extra_admin_nav" in h }}
 
