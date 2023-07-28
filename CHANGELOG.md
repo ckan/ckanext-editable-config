@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Features
 
-- basic config management form ([ee885fc](https://github.com/DataShades/ckanext-editable-config/commit/ee885fcbc2c5aaf1f3e62cb759c9889066c4321f) by Sergey Motornyuk).
+- basic config management form ([b7eba9e](https://github.com/DataShades/ckanext-editable-config/commit/b7eba9e2ee4343c65750d38227596e9a40f4db53) by Sergey Motornyuk).
 - additional_validators config option ([eed0893](https://github.com/DataShades/ckanext-editable-config/commit/eed08939c4f0704f50dcfecb15a5eb380f1b0e27) by Sergey Motornyuk).
 - add charge_timeout config option ([cba2b6a](https://github.com/DataShades/ckanext-editable-config/commit/cba2b6aea6f62ec27c588d0b77a53651f87409b1) by Sergey Motornyuk).
 
