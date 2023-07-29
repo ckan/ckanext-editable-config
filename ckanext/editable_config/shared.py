@@ -2,15 +2,17 @@ from __future__ import annotations
 
 import datetime
 import logging
-from typing import Any, Collection
+from typing import Any, Collection, Iterable
 
 from typing_extensions import TypedDict
 
 import ckan.plugins.toolkit as tk
+from ckan import model
 from ckan.cli import CKANConfigLoader
 from ckan.common import config_declaration as cd
 from ckan.config.declaration import Key
 from ckan.config.declaration.option import Flag
+from ckan.config.declaration.option import Option as DeclaredOption
 from ckan.plugins.core import plugins_update
 
 from . import config
@@ -25,22 +27,91 @@ class OptionDict(TypedDict):
     prev_value: str
 
 
+def get_declaration(key: str) -> DeclaredOption[Any] | None:
+    """Return existing declaration or None."""
+    if key in cd:
+        return cd[Key.from_string(key)]
+
+    log.warning("%s is not declared", key)
+    return None
+
+
+def add_validators(validators: dict[str, str]):
+    """Append validators to the declared options.
+
+    Existing validators are not overriden, they extended with the list of
+    additional validators:
+
+        >>> option = cd.declare("a").set_validators("not_empty")
+        >>> add_validators({"a": "boolean_validator"})
+        >>> assert option.get_validators() == "not_empty boolean_validator"
+
+    """
+    for key, names in validators.items():
+        if option := get_declaration(key):
+            option.append_validators(names)
+
+
+def switch_editable_flag(keys: list[str], enable: bool):
+    """Change the state of editable-flag for options."""
+    for key in keys:
+        if not (option := get_declaration(key)):
+            continue
+
+        if enable:
+            option.set_flag(Flag.editable)
+        else:
+            option.flags &= ~Flag.editable
+
+
+def convert_core_overrides(names: Iterable[str]):
+    """Convert SystemInfo records into editable options."""
+    try:
+        change = tk.get_action("editable_config_change")
+    except KeyError:
+        log.debug("Do not convert core overrides because plugin is not loaded yet")
+        return
+
+    q = model.Session.query(model.SystemInfo).filter(
+        model.SystemInfo.key.in_(names),
+    )
+    options = {op.key: op.value for op in q}
+
+    log.debug("Convert core overrides into editable config: %s", options)
+    change(
+        {"ignore_auth": True},
+        {
+            "apply": False,
+            "options": options,
+        },
+    )
+
+    q.delete()
+    model.Session.commit()
+
+
 def is_editable(key: str) -> bool:
     """Check if option is editable."""
-    return cd[Key.from_string(key)].has_flag(Flag.editable)
+    if option := get_declaration(key):
+        return option.has_flag(Flag.editable)
+
+    return False
 
 
 def value_as_string(key: str, value: Any) -> str:
     """Convert the value into string using declared option rules."""
     # TODO: Switch to `option.str_value(value)` once PR with this form is
     # accepted and released.
-    option = cd[Key.from_string(key)]
-    cls = type(option)
+    if option := get_declaration(key):
+        cls = type(option)
+        return cls(value).set_validators(option.get_validators()).str_value()
 
-    return cls(value).set_validators(option.get_validators()).str_value()
+    return str(value)
 
 
 class _Updater:
+    """Callable that detects and applies config changes."""
+
     # use the date of last update instead of mutex. In this way we can perform
     # multiple simultaneous updates of the global config object, but it's ok,
     # since config update is idempotent. More important, most of the time we

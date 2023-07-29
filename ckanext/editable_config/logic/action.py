@@ -8,7 +8,6 @@ import ckan.plugins.toolkit as tk
 from ckan import types
 from ckan.common import CKANConfig
 from ckan.common import config_declaration as cd
-from ckan.config.declaration import Key
 from ckan.config.declaration.option import Flag
 from ckan.logic import validate
 
@@ -134,7 +133,8 @@ def editable_config_change(
 
 
 def _make_option(key: str, value: Any):
-    if key not in cd or not cd[Key.from_string(key)].has_flag(Flag.editable):
+    option = shared.get_declaration(key)
+    if not option or not option.has_flag(Flag.editable):
         raise tk.ValidationError({key: ["Not editable"]})
 
     _, errors = cd.validate(CKANConfig(tk.config, **{key: value}))
