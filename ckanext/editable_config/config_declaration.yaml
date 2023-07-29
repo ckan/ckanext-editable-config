@@ -36,6 +36,7 @@ groups:
         type: int
         default: 0
         example: 10
+        editable: true
         description: |
           Minimal number of seconds between two consequent change detection
           cycles. Basically, if you set 60 as a value, plugin will check config
@@ -60,12 +61,14 @@ groups:
       - key: ckanext.editable_config.disable_admin_config_tab
         type: bool
         example: true
+        editable: true
         description: |
           Remove "Config" tab from CKAN's Admin UI.
 
       - key: ckanext.editable_config.replace_admin_config_tab
         type: bool
         example: true
+        editable: true
         description: |
           Replace "Config" tab from CKAN's Admin UI with basic form for
           editable config options.

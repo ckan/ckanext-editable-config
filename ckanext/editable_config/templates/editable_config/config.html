@@ -13,6 +13,12 @@
     {% asset "editable_config/editable_config-js" %}
 {% endblock scripts %}
 
+{% block styles %}
+    {{ super() }}
+    {% asset "editable_config/editable_config-css" %}
+{% endblock styles %}
+
+
 {% block primary_content_inner %}
     {% block form %}
 
@@ -64,7 +70,10 @@
             {% block sidebar_content %}
                 {% for name in options %}
                     <p>
-                        <label for="{{ "field-value-" ~ name.replace(".", "-") }}">
+                        <label
+                            class="editable-option-help--key"
+                            title="{{ name }}"
+                            for="{{ "field-value-" ~ name.replace(".", "-") }}">
                             {{ name }}
                         </label>
                         {{ h.render_markdown(h.editable_config_option_description(name), allow_html=true) }}

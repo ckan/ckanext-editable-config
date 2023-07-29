@@ -7,8 +7,8 @@ editable_config-js:
     preload:
       - base/main
 
-# editable_config-css:
-#   filter: cssrewrite
-#   output: ckanext-editable_config/%(version)s-editable_config.css
-#   contents:
-#     - css/editable_config.css
+editable_config-css:
+  filter: cssrewrite
+  output: ckanext-editable_config/%(version)s-editable_config.css
+  contents:
+    - css/editable_config.css

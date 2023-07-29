@@ -5,7 +5,6 @@ from unittest.mock import ANY
 import pytest
 
 import ckan.plugins.toolkit as tk
-from ckan.common import config_declaration as cd
 
 
 @pytest.mark.usefixtures("with_plugins", "non_clean_db")
@@ -20,8 +19,7 @@ class TestOptionFactory:
 
     def test_key_cannot_be_undeclared(self, option_factory, faker):
         """Undeclared options are not allowed."""
-        while (key := faker.word()) in cd:
-            continue
+        key = faker.word()
 
         with pytest.raises(tk.ValidationError) as e:
             option_factory(key=key, value=faker.word())
