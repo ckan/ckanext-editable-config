@@ -7,7 +7,7 @@ import pytest
 import ckan.plugins.toolkit as tk
 
 
-@pytest.mark.usefixtures("with_plugins", "non_clean_db")
+@pytest.mark.usefixtures("with_plugins", "clean_db")
 class TestOptionFactory:
     def test_key_and_value_required(self, option_factory):
         """OptionFactory requires key and value."""

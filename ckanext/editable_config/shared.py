@@ -27,6 +27,18 @@ class OptionDict(TypedDict):
     prev_value: str
 
 
+def shorten_for_log(value: Any, width: int = 80, placeholder: str = "...") -> str:
+    """Prepare value for logging.
+
+    Trasforms value into string and truncates it to specified length, appending
+    placeholder if result was reduced in size.
+    """
+    result = str(value)
+    if len(result) > width + len(placeholder):
+        result = result[:width] + placeholder
+    return result
+
+
 def get_declaration(key: str) -> DeclaredOption[Any] | None:
     """Return existing declaration or None."""
     if key in cd:
@@ -77,7 +89,7 @@ def convert_core_overrides(names: Iterable[str]):
     )
     options = {op.key: op.value for op in q}
 
-    log.debug("Convert core overrides into editable config: %s", options)
+    log.debug("Convert core overrides into editable config: %s", list(options))
     change(
         {"ignore_auth": True},
         {
@@ -168,8 +180,8 @@ class _Updater:
                 log.debug(
                     "Change %s from %s to %s",
                     option.key,
-                    tk.config[option.key],
-                    option.value,
+                    shorten_for_log(tk.config[option.key]),
+                    shorten_for_log(option.value),
                 )
                 tk.config[option.key] = option.value
                 count += 1
@@ -190,8 +202,8 @@ class _Updater:
                 log.debug(
                     "Reset %s from %s to %s",
                     key,
-                    tk.config[key],
-                    src_conf[key],
+                    shorten_for_log(tk.config[key]),
+                    shorten_for_log(src_conf[key]),
                 )
 
                 tk.config[key] = src_conf[key]
@@ -200,7 +212,7 @@ class _Updater:
                 log.debug(
                     "Remove %s with value %s",
                     key,
-                    tk.config[key],
+                    shorten_for_log(tk.config[key]),
                 )
                 tk.config.pop(key)
             else:

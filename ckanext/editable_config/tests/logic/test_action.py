@@ -7,7 +7,7 @@ from ckanext.editable_config import config, shared
 
 
 @pytest.mark.ckan_config(config.WHITELIST, ["ckan.site_title", "ckan.site_description"])
-@pytest.mark.usefixtures("with_plugins", "non_clean_db")
+@pytest.mark.usefixtures("with_plugins", "clean_db")
 class TestList:
     def test_default(self):
         result = call_action("editable_config_list")
@@ -18,7 +18,7 @@ class TestList:
         assert set(result) == {"ckan.site_title"}
 
 
-@pytest.mark.usefixtures("with_plugins", "non_clean_db", "with_autoclean")
+@pytest.mark.usefixtures("with_plugins", "clean_db", "with_autoclean")
 class TestUpdate:
     def test_empty(self):
         result = call_action("editable_config_update")
@@ -50,7 +50,7 @@ class TestUpdate:
         assert ckan_config[reset_option["key"]] is None
 
 
-@pytest.mark.usefixtures("with_plugins", "non_clean_db", "with_autoclean")
+@pytest.mark.usefixtures("with_plugins", "clean_db", "with_autoclean")
 class TestChange:
     def test_undeclared(self, option_factory, faker):
         """Undeclared options are not allowed."""
@@ -98,7 +98,7 @@ class TestChange:
         )
 
 
-@pytest.mark.usefixtures("with_plugins", "non_clean_db", "with_autoclean")
+@pytest.mark.usefixtures("with_plugins", "clean_db", "with_autoclean")
 class TestRevert:
     def test_revert_missing(self):
         with pytest.raises(tk.ObjectNotFound):
@@ -114,7 +114,7 @@ class TestRevert:
         assert result["ckan.site_title"]["prev_value"] == updated
 
 
-@pytest.mark.usefixtures("with_plugins", "non_clean_db", "with_autoclean")
+@pytest.mark.usefixtures("with_plugins", "clean_db", "with_autoclean")
 class TestReset:
     def test_reset_missing(self):
         with pytest.raises(tk.ObjectNotFound):

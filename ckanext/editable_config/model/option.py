@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Any, cast
 
 import sqlalchemy as sa
+from sqlalchemy.orm import Mapped
 from typing_extensions import Self
 
 import ckan.plugins.toolkit as tk
@@ -13,13 +14,20 @@ from ckan.lib.dictization import table_dictize
 from ckanext.editable_config import shared
 
 
-class Option(tk.BaseModel):
-    __tablename__ = "editable_config_option"
+class Option(tk.BaseModel):  # pyright: ignore[reportUntypedBaseClass]
+    __table__ = sa.Table(
+        "editable_config_option",
+        tk.BaseModel.metadata,
+        sa.Column("key", sa.Text, primary_key=True),
+        sa.Column("value", sa.Text, nullable=False),
+        sa.Column("updated_at", sa.DateTime, nullable=False),
+        sa.Column("prev_value", sa.Text, nullable=False),
+    )
 
-    key = sa.Column(sa.Text, primary_key=True)
-    value = sa.Column(sa.Text, nullable=False)
-    updated_at = sa.Column(sa.DateTime, nullable=False)
-    prev_value = sa.Column(sa.Text, nullable=False)
+    key: Mapped[str]
+    value: Mapped[str]
+    updated_at: Mapped[datetime]
+    prev_value: Mapped[str]
 
     @classmethod
     def get(cls, key: str) -> Self | None:
@@ -32,7 +40,6 @@ class Option(tk.BaseModel):
     @classmethod
     def set(cls, key: str, value: Any) -> Self:
         """Create/update an option."""
-        option: Self
         safe_value = shared.value_as_string(key, value)
 
         if option := cls.get(key):
