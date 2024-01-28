@@ -68,7 +68,11 @@ class EditableConfigPlugin(plugins.SingletonPlugin):
             )
             return
 
-        inspector = sa.inspect(model.meta.engine)
+        engine = model.meta.engine
+        if not engine:
+            return
+
+        inspector = sa.inspect(engine)
         self._editable_config_enabled = inspector.has_table("editable_config_option")
         if not self._editable_config_enabled:
             log.critical(

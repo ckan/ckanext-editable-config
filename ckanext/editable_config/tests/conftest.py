@@ -9,7 +9,6 @@ from pytest_factoryboy import register
 from ckan import model
 from ckan.tests import factories
 from ckan.tests.helpers import call_action
-
 from ckanext.editable_config.model import Option
 from ckanext.editable_config.shared import apply_config_overrides
 
@@ -18,12 +17,6 @@ from ckanext.editable_config.shared import apply_config_overrides
 def reset_last_check():
     """Remove freezetime dates in future from config_overrides."""
     apply_config_overrides._last_check = None
-
-
-@pytest.fixture(scope="session")
-def reset_db_once(reset_db, migrate_db_for):
-    reset_db()
-    migrate_db_for("editable_config")
 
 
 @pytest.fixture()

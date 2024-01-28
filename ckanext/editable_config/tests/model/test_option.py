@@ -8,7 +8,7 @@ import pytest
 from ckanext.editable_config.model import Option
 
 
-@pytest.mark.usefixtures("with_plugins", "non_clean_db")
+@pytest.mark.usefixtures("with_plugins", "clean_db")
 class TestOption:
     def test_get(self, faker, option_factory):
         """Option.get returns exition option or None."""

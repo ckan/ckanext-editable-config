@@ -22,7 +22,7 @@ def test_value_as_string():
     assert shared.value_as_string("ckan.plugins", ["hello", "world"]) == "hello world"
 
 
-@pytest.mark.usefixtures("with_plugins", "non_clean_db")
+@pytest.mark.usefixtures("with_plugins", "clean_db")
 class TestUpdater:
     def test_apply_new_updates(self, faker, ckan_config, freezer, autoclean_option):
         """New updates are applied."""
