@@ -59,27 +59,23 @@ class TestUpdater:
         assert shared.apply_config_overrides() == 0
         assert ckan_config[key] != value
 
-    def test_reset_configured_option(self, ckan_config, autoclean_option):
+    @pytest.mark.usefixtures("with_autoclean")
+    def test_reset_configured_option(self, ckan_config, option_factory, faker):
         """Config overrides for option in config file can are removed."""
-        key = autoclean_option["key"]
-        assert shared.apply_config_overrides(removed_keys=[key]) == 1
-        assert ckan_config[key] != autoclean_option["value"]
+        key = "ckan.site_title"
+        option = option_factory(key=key, value=faker.sentence())
+        assert shared.apply_config_overrides() == 0
+
+        call_action("editable_config_reset", keys=[key], apply=False)
+        assert shared.apply_config_overrides() == 1
+        assert ckan_config[key] != option["value"]
 
     def test_reset_added_option(self, faker, ckan_config, option_factory):
         """Config overrides for option not available in the config file are removed."""
         key = "ckan.site_intro_text"
+        option = option_factory(key=key, value=faker.sentence())
+        assert shared.apply_config_overrides() == 0
 
-        with option_factory.autoclean(key=key, value=faker.sentence()) as option:
-            assert shared.apply_config_overrides(removed_keys=[key]) == 1
-            assert ckan_config[key] != option["value"]
-
-    @pytest.mark.ckan_config("ckan.site_title", "hello world")
-    def test_reset_original_option(self, faker, ckan_config):
-        """Config options can be restored to the state of config file even when
-        changed elsewhere.
-
-        """
-        key = "ckan.site_title"
-        assert ckan_config[key] == "hello world"
-        assert shared.apply_config_overrides(removed_keys=[key]) == 1
-        assert ckan_config[key] != "hello world"
+        call_action("editable_config_reset", keys=[key], apply=False)
+        assert shared.apply_config_overrides() == 1
+        assert ckan_config[key] != option["value"]

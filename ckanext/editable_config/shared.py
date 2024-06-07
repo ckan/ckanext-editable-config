@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime
 import logging
-from typing import Any, Collection, Iterable
+from typing import Any, Iterable
 import sqlalchemy as sa
 from typing_extensions import TypedDict
 
@@ -137,6 +137,7 @@ class _Updater:
     # TODO: write bencharks for mutex vs. last updated
     # TODO: prove that race-condition is safe here
     _last_check: datetime.datetime | None
+    _active_overrides: set[str]
 
     @property
     def last_check(self):
@@ -144,17 +145,25 @@ class _Updater:
 
     def __init__(self):
         self._last_check = None
+        self._active_overrides = set()
 
-    def __call__(self, removed_keys: Collection[str] | None = None) -> int:
+    def __call__(self) -> int:
         """Override changed config options and remove options that do not
         require customization.
 
         Reckon total number of modifications and reload plugins if any change
         detected.
         """
-        count = self._apply_changes()
-        count += self._remove_keys(removed_keys)
+        now = datetime.datetime.utcnow()
 
+        charge_timeout = datetime.timedelta(seconds=config.charge_timeout())
+        if self._last_check and now - self._last_check < charge_timeout:
+            return 0
+
+        count = self._apply_changes()
+        count += self._remove_keys()
+
+        self._last_check = now
         if count:
             plugins_update()
 
@@ -164,12 +173,7 @@ class _Updater:
         """Override config options that were updated since last check."""
         from ckanext.editable_config.model import Option
 
-        now = datetime.datetime.utcnow()
         count = 0
-
-        charge_timeout = datetime.timedelta(seconds=config.charge_timeout())
-        if self._last_check and now - self._last_check < charge_timeout:
-            return count
 
         if Option.is_updated_since(self._last_check):
             for option in Option.updated_since(self._last_check):
@@ -189,17 +193,23 @@ class _Updater:
                 tk.config[option.key] = option.value
                 count += 1
 
-        self._last_check = now
         return count
 
-    def _remove_keys(self, keys: Collection[str] | None) -> int:
+    def _remove_keys(self) -> int:
         """Restore original value(using config file) for specified options."""
         count = 0
-        if not keys:
-            return count
 
         src_conf = CKANConfigLoader(tk.config["__file__"]).get_config()
-        for key in keys:
+
+        try:
+            editable = tk.get_action("editable_config_list")({"ignore_auth": True}, {})
+        except KeyError:
+            log.debug("Do not check removed overrides because plugin is not loaded yet")
+            return 0
+
+        current_overrides = {k for k, v in editable.items() if v["option"]}
+
+        for key in self._active_overrides - current_overrides:
             if key in src_conf:
                 # switch to the literal value from the config file.
                 log.debug(
@@ -225,6 +235,7 @@ class _Updater:
 
             count += 1
 
+        self._active_overrides = current_overrides
         return count
 
 

@@ -40,7 +40,7 @@ class TestUpdate:
             apply=False,
         )
 
-        assert shared.apply_config_overrides(removed_keys=result["reset"]) == 3
+        assert shared.apply_config_overrides() == 3
 
         assert (
             ckan_config["ckan.site_title"]

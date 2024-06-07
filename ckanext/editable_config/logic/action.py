@@ -101,7 +101,7 @@ def editable_config_update(
     )
 
     if data_dict["apply"]:
-        shared.apply_config_overrides(removed_keys=result["reset"])
+        shared.apply_config_overrides()
 
     return result
 
@@ -225,7 +225,7 @@ def editable_config_reset(
         sess.commit()
 
     if data_dict["apply"]:
-        shared.apply_config_overrides(removed_keys=result)
+        shared.apply_config_overrides()
 
     return result
 
@@ -236,6 +236,6 @@ def editable_config_apply(
     data_dict: dict[str, Any],
 ) -> dict[str, Any]:
     tk.check_access("editable_config_apply", context, data_dict)
-    count = shared.apply_config_overrides(removed_keys=data_dict["removed_keys"])
+    count = shared.apply_config_overrides()
 
     return {"count": count}
