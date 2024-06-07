@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime
 import logging
 from typing import Any, Collection, Iterable
-
+import sqlalchemy as sa
 from typing_extensions import TypedDict
 
 import ckan.plugins.toolkit as tk
@@ -84,6 +84,10 @@ def convert_core_overrides(names: Iterable[str]):
         log.debug("Do not convert core overrides because plugin is not loaded yet")
         return
 
+    inspector = sa.inspect(model.meta.engine)
+    if inspector.has_table("system_info_revision"):
+        model.Session.execute(sa.delete(sa.table("system_info_revision")))
+
     q = model.Session.query(model.SystemInfo).filter(
         model.SystemInfo.key.in_(names),
     )
@@ -97,7 +101,6 @@ def convert_core_overrides(names: Iterable[str]):
             "options": options,
         },
     )
-
     q.delete()
     model.Session.commit()
 
